@@ -1,0 +1,18 @@
+<!-- Shared build settings for every mod project inside BloobsMods -->
+<Project>
+
+  <PropertyGroup>
+    <!-- Build in Release mode by default (optimized, no debug .pdb file) -->
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+
+    <!-- Keep bin/obj clutter out of project folders: BloobsMods\.build\<ProjectName>\ -->
+    <BaseOutputPath>$(MSBuildThisFileDirectory).build\$(MSBuildProjectName)\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+</Project>
