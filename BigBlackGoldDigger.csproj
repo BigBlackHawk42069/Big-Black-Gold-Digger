@@ -1,9 +1,39 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<!-- The SDK is imported explicitly (instead of <Project Sdk="...">) so the output
+     folders below can be set before the SDK reads them. -->
+<Project>
+
+  <PropertyGroup>
+    <!-- Build in Release mode by default (optimized, no debug .pdb file) -->
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+
+    <!-- Keep bin/obj clutter in one ignored folder: .build\ -->
+    <BaseOutputPath>$(MSBuildThisFileDirectory).build\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).build\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <!--
+    Game location. Override it for your PC in either of these ways:
+      1. Create Local.props next to this file (it is gitignored):
+           <Project><PropertyGroup><GameDir>D:\SteamLibrary\steamapps\common\Bloobs Adventure Idle</GameDir></PropertyGroup></Project>
+      2. Pass it on the command line:
+           dotnet build -p:GameDir="D:\SteamLibrary\steamapps\common\Bloobs Adventure Idle"
+  -->
+  <Import Project="Local.props" Condition="Exists('$(MSBuildThisFileDirectory)Local.props')" />
+
+  <PropertyGroup>
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Bloobs Adventure Idle</GameDir>
+    <ManagedDir>$(GameDir)\Bloobs Adventure Idle_Data\Managed</ManagedDir>
+  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>BigBlackGoldDigger</AssemblyName>
     <RootNamespace>BigBlackGoldDigger</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
     <!-- DLL metadata (right-click the DLL > Properties > Details). Keep Version in sync with Plugin.Version -->
     <Product>Big Black Gold Digger</Product>
@@ -13,11 +43,10 @@
     <Company>BigBlackHawk</Company>
     <Copyright>Copyright © 2026 BigBlackHawk</Copyright>
     <Version>1.3.0</Version>
-    <LangVersion>latest</LangVersion>
-    <GenerateDependencyFile>false</GenerateDependencyFile>
-    <!-- Change this if the game is installed somewhere else -->
-    <GameDir>C:\Program Files (x86)\Steam\steamapps\common\Bloobs Adventure Idle</GameDir>
-    <ManagedDir>$(GameDir)\Bloobs Adventure Idle_Data\Managed</ManagedDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +56,16 @@
     <Reference Include="UnityEngine.CoreModule" HintPath="$(ManagedDir)\UnityEngine.CoreModule.dll" Private="false" />
     <Reference Include="Assembly-CSharp" HintPath="$(ManagedDir)\Assembly-CSharp.dll" Private="false" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <!-- Clear error instead of dozens of "type not found" errors when GameDir is wrong -->
+  <Target Name="CheckGameDir" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(ManagedDir)\Assembly-CSharp.dll')"
+           Text="Bloobs Adventure Idle not found at '$(GameDir)'. Set GameDir in Local.props or pass -p:GameDir=&quot;...&quot;." />
+    <Error Condition="!Exists('$(GameDir)\BepInEx\core\BepInEx.dll')"
+           Text="BepInEx not found in '$(GameDir)\BepInEx\core'. Install BepInEx 5 into the game folder first." />
+  </Target>
 
   <!-- After each build, copy the plugin into its own folder in BepInEx\plugins -->
   <Target Name="CopyToPlugins" AfterTargets="Build">

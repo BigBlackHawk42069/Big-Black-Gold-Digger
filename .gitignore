@@ -1,3 +1,5 @@
 # Build output (created by dotnet build)
 /.build/
 
+# Your personal build settings (e.g. GameDir)
+/Local.props
