@@ -14,7 +14,7 @@ namespace BigBlackGoldDigger
     {
         public const string Guid = "BigBlackGoldDigger";
         public const string Name = "Big Black Gold Digger";
-        public const string Version = "1.3.0";
+        public const string Version = "1.0.0";
 
         internal static ManualLogSource Log;
 
